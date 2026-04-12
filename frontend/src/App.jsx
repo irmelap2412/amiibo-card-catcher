@@ -9,17 +9,18 @@ import Login from './pages/Login';
 import Signup from './pages/Signup';
 import Favorites from './pages/Favorites';
 import Profile from './pages/Profile';
+import AmiiboDetail from './pages/AmiiboDetail';
 
 // ── Theme ─────────────────────────────────────────────────────────────────────
 const theme = createTheme({
   palette: {
     mode: 'light',
     primary: {
-      main: '#E60012',     
+      main: '#E60012',
       contrastText: '#fff',
     },
     secondary: {
-      main: '#0070c9',      
+      main: '#0070c9',
       contrastText: '#fff',
     },
     background: {
@@ -83,6 +84,12 @@ function AppRoutes() {
       <Route path="/" element={<AppLayout><Landing /></AppLayout>} />
       <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
       <Route path="/signup" element={<PublicRoute><Signup /></PublicRoute>} />
+
+      {/* Amiibo detail — public, no login required */}
+      <Route
+        path="/amiibo/:slug"
+        element={<AppLayout><AmiiboDetail /></AppLayout>}
+      />
 
       {/* Protected */}
       <Route

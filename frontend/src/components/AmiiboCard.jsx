@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import {
   Card, CardContent, CardMedia, CardActions, Typography,
-  IconButton, Tooltip, Box, Chip, Skeleton,
+  IconButton, Tooltip, Box, Chip, Skeleton, Button,
 } from '@mui/material';
 import FavoriteIcon from '@mui/icons-material/Favorite';
 import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
@@ -9,7 +9,10 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 import StarIcon from '@mui/icons-material/Star';
 import StarBorderIcon from '@mui/icons-material/StarBorder';
+import OpenInNewIcon from '@mui/icons-material/OpenInNew';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { amiiboSlug } from '../utils/slug';
 
 export function AmiiboCardSkeleton() {
   return (
@@ -85,25 +88,43 @@ export default function AmiiboCard({ amiibo }) {
         </Typography>
       </CardContent>
 
-      {user && (
-        <CardActions sx={{ justifyContent: 'space-around', pt: 0, px: 1 }}>
-          <Tooltip title={status.favorite ? 'Remove from Favorites' : 'Add to Favorites'}>
-            <IconButton size="small" onClick={handleToggle('favorite')} color={status.favorite ? 'error' : 'default'}>
-              {status.favorite ? <FavoriteIcon fontSize="small" /> : <FavoriteBorderIcon fontSize="small" />}
-            </IconButton>
-          </Tooltip>
-          <Tooltip title={status.owned ? 'Mark as Not Owned' : 'Mark as Owned'}>
-            <IconButton size="small" onClick={handleToggle('owned')} color={status.owned ? 'success' : 'default'}>
-              {status.owned ? <CheckCircleIcon fontSize="small" /> : <CheckCircleOutlineIcon fontSize="small" />}
-            </IconButton>
-          </Tooltip>
-          <Tooltip title={status.wanted ? 'Remove from Wishlist' : 'Add to Wishlist'}>
-            <IconButton size="small" onClick={handleToggle('wanted')} color={status.wanted ? 'warning' : 'default'}>
-              {status.wanted ? <StarIcon fontSize="small" /> : <StarBorderIcon fontSize="small" />}
-            </IconButton>
-          </Tooltip>
-        </CardActions>
-      )}
+      {/* Actions row */}
+      <CardActions sx={{ justifyContent: 'space-between', pt: 0, px: 1 }}>
+        {/* Collection toggles (only when logged in) */}
+        {user ? (
+          <Box sx={{ display: 'flex' }}>
+            <Tooltip title={status.favorite ? 'Remove from Favorites' : 'Add to Favorites'}>
+              <IconButton size="small" onClick={handleToggle('favorite')} color={status.favorite ? 'error' : 'default'}>
+                {status.favorite ? <FavoriteIcon fontSize="small" /> : <FavoriteBorderIcon fontSize="small" />}
+              </IconButton>
+            </Tooltip>
+            <Tooltip title={status.owned ? 'Mark as Not Owned' : 'Mark as Owned'}>
+              <IconButton size="small" onClick={handleToggle('owned')} color={status.owned ? 'success' : 'default'}>
+                {status.owned ? <CheckCircleIcon fontSize="small" /> : <CheckCircleOutlineIcon fontSize="small" />}
+              </IconButton>
+            </Tooltip>
+            <Tooltip title={status.wanted ? 'Remove from Wishlist' : 'Add to Wishlist'}>
+              <IconButton size="small" onClick={handleToggle('wanted')} color={status.wanted ? 'warning' : 'default'}>
+                {status.wanted ? <StarIcon fontSize="small" /> : <StarBorderIcon fontSize="small" />}
+              </IconButton>
+            </Tooltip>
+          </Box>
+        ) : (
+          <Box /> /* spacer so "See Details" stays right-aligned */
+        )}
+
+        {/* See Details link — always visible */}
+        <Button
+          component={Link}
+          to={`/amiibo/${amiiboSlug(amiibo)}`}
+          state={{ amiibo }}             // pass full object so detail page is instant
+          size="small"
+          endIcon={<OpenInNewIcon sx={{ fontSize: '14px !important' }} />}
+          sx={{ fontSize: 12, textTransform: 'none', whiteSpace: 'nowrap' }}
+        >
+          See Details
+        </Button>
+      </CardActions>
     </Card>
   );
 }

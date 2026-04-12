@@ -11,6 +11,14 @@ export const amiiboApi = {
     axios.get(`${AMIIBO_BASE}/amiibo/?character=${encodeURIComponent(name)}`).then(r => r.data.amiibo),
   getGameSeries: () => axios.get(`${AMIIBO_BASE}/gameseries/`).then(r => r.data.amiibo),
   getAmiiboSeries: () => axios.get(`${AMIIBO_BASE}/amiiboseries/`).then(r => r.data.amiibo),
+  getDetail: (head, tail) =>
+    axios
+      .get(`${AMIIBO_BASE}/amiibo/?character=&showusage`)
+      .then(r => {
+        const list = r.data.amiibo;
+        // API returns an array; head+tail is unique so take first element
+        return Array.isArray(list) ? list[0] : list;
+      }),
 };
 
 // Backend API (requires auth for most endpoints)
