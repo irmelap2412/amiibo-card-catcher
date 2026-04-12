@@ -1,0 +1,22 @@
+{
+  "name": "amiibo-card-catcher-backend",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "node --watch src/index.js",
+    "start": "node src/index.js",
+    "db:migrate": "node src/config/migrate.js",
+    "db:seed": "node src/config/seed.js",
+    "auth:migrate": "npx @better-auth/cli migrate"
+  },
+  "dependencies": {
+    "better-auth": "^1.6.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.0",
+    "pg": "^8.13.0"
+  },
+  "devDependencies": {
+    "@types/pg": "^8.11.0"
+  }
+}
