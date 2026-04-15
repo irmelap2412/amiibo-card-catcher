@@ -5,24 +5,42 @@ services:
       - "3000:3000"
     depends_on:
       - backend
+    networks:
+      - amiibo-network
+    restart: always
+    volumes:
+      - ./frontend:/frontend  
+      - /frontend/node_modules  
   backend:
     build: ./backend    
     ports:
       - "5000:5000"
     environment:
-      - DATABASE_URL=postgres://user:password@db:5432/amiibo_card_catcher
+      - DATABASE_URL=${DATABASE_URL}
+    networks:
+      - amiibo-network
     depends_on:
       - db
+    restart: always
+    volumes:
+      - ./backend:/backend
+      - /backend/node_modules  
   db:
     image: postgres:18-alpine
     ports:
       - "5432:5432"
     environment:
-      - POSTGRES_USER=user
-      - POSTGRES_PASSWORD=password
-      - POSTGRES_DB=amiibo_card_catcher
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
     volumes:
       - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql
       - postgres_data:/var/lib/postgresql/data
+    networks:
+      - amiibo-network  
 volumes:
   postgres_data: 
+  
+networks:
+  amiibo-network:
+    driver: bridge

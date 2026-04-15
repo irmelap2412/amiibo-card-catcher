@@ -22,7 +22,7 @@ export const amiiboApi = {
 };
 
 // Backend API (requires auth for most endpoints)
-const API_BASE = import.meta.env.VITE_API_API_URL || 'http://localhost:5000/api';
+const API_BASE = import.meta.env.VITE_API_API_URL;
 
 const authHeader = () => {
   const token = localStorage.getItem('token');
