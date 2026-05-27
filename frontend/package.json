@@ -14,7 +14,7 @@
     "slugify": "^1.6.9"
   },
   "scripts": {
-    "dev": "vite --host 0.0.0.0",
+    "dev": "vite --host 0.0.0.0 --allowed-hosts all",
     "build": "vite build",
     "preview": "vite preview"
   },
