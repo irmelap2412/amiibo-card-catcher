@@ -1,0 +1,24 @@
+services:
+  frontend:
+    build: ./frontend
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+    networks:
+      - amiibo-network
+    restart: always
+
+  backend:
+    build: ./backend
+    ports:
+      - "5000:5000"
+    environment:
+      - DATABASE_URL=${RDS_DATABASE_URL}
+    networks:
+      - amiibo-network
+    restart: always
+
+networks:
+  amiibo-network:
+    driver: bridge
