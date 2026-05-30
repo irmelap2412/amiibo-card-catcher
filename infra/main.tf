@@ -8,26 +8,22 @@ terraform {
 }
 
 provider "aws" {
-  region = var.aws_region
+  region                      = var.aws_region
   skip_credentials_validation = true
   skip_metadata_api_check     = true
   skip_region_validation      = true
 }
 
-# ============================================================
-# VPC
-# ============================================================
-
 resource "aws_vpc" "main" {
   cidr_block           = "10.0.0.0/16"
   enable_dns_hostnames = true
   enable_dns_support   = true
-  tags = { Name = "amiibo-vpc" }
+  tags                 = { Name = "amiibo-vpc" }
 }
 
 resource "aws_internet_gateway" "main" {
   vpc_id = aws_vpc.main.id
-  tags = { Name = "amiibo-igw" }
+  tags   = { Name = "amiibo-igw" }
 }
 
 resource "aws_subnet" "public_1" {
@@ -35,7 +31,7 @@ resource "aws_subnet" "public_1" {
   cidr_block              = "10.0.1.0/24"
   availability_zone       = "${var.aws_region}a"
   map_public_ip_on_launch = true
-  tags = { Name = "amiibo-public-1" }
+  tags                    = { Name = "amiibo-public-1" }
 }
 
 resource "aws_subnet" "public_2" {
@@ -43,21 +39,21 @@ resource "aws_subnet" "public_2" {
   cidr_block              = "10.0.2.0/24"
   availability_zone       = "${var.aws_region}b"
   map_public_ip_on_launch = true
-  tags = { Name = "amiibo-public-2" }
+  tags                    = { Name = "amiibo-public-2" }
 }
 
 resource "aws_subnet" "private_1" {
   vpc_id            = aws_vpc.main.id
   cidr_block        = "10.0.3.0/24"
   availability_zone = "${var.aws_region}a"
-  tags = { Name = "amiibo-private-1" }
+  tags              = { Name = "amiibo-private-1" }
 }
 
 resource "aws_subnet" "private_2" {
   vpc_id            = aws_vpc.main.id
   cidr_block        = "10.0.4.0/24"
   availability_zone = "${var.aws_region}b"
-  tags = { Name = "amiibo-private-2" }
+  tags              = { Name = "amiibo-private-2" }
 }
 
 resource "aws_route_table" "public" {
@@ -79,14 +75,9 @@ resource "aws_route_table_association" "public_2" {
   route_table_id = aws_route_table.public.id
 }
 
-# ============================================================
-# SECURITY GROUPS
-# ============================================================
-
 resource "aws_security_group" "alb" {
-  name        = "amiibo-sg-alb"
-  description = "Load Balancer - dozvoli HTTP izvana"
-  vpc_id      = aws_vpc.main.id
+  name   = "amiibo-sg-alb"
+  vpc_id = aws_vpc.main.id
 
   ingress {
     from_port   = 80
@@ -106,12 +97,10 @@ resource "aws_security_group" "alb" {
 }
 
 resource "aws_security_group" "ec2" {
-  name        = "amiibo-sg-ec2"
-  description = "EC2 instance - dozvoli od ALB i SSH"
-  vpc_id      = aws_vpc.main.id
+  name   = "amiibo-sg-ec2"
+  vpc_id = aws_vpc.main.id
 
   ingress {
-    description     = "Frontend port od ALB"
     from_port       = 3000
     to_port         = 3000
     protocol        = "tcp"
@@ -119,7 +108,6 @@ resource "aws_security_group" "ec2" {
   }
 
   ingress {
-    description = "SSH pristup"
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"
@@ -137,12 +125,10 @@ resource "aws_security_group" "ec2" {
 }
 
 resource "aws_security_group" "rds" {
-  name        = "amiibo-sg-rds"
-  description = "RDS - dozvoli PostgreSQL samo od EC2"
-  vpc_id      = aws_vpc.main.id
+  name   = "amiibo-sg-rds"
+  vpc_id = aws_vpc.main.id
 
   ingress {
-    description     = "PostgreSQL od EC2"
     from_port       = 5432
     to_port         = 5432
     protocol        = "tcp"
@@ -159,14 +145,10 @@ resource "aws_security_group" "rds" {
   tags = { Name = "amiibo-sg-rds" }
 }
 
-# ============================================================
-# RDS
-# ============================================================
-
 resource "aws_db_subnet_group" "main" {
   name       = "amiibo-db-subnet-group"
   subnet_ids = [aws_subnet.private_1.id, aws_subnet.private_2.id]
-  tags = { Name = "amiibo-db-subnet-group" }
+  tags       = { Name = "amiibo-db-subnet-group" }
 }
 
 resource "aws_db_instance" "main" {
@@ -190,53 +172,35 @@ resource "aws_db_instance" "main" {
   tags = { Name = "amiibo-db" }
 }
 
-
-
-# ============================================================
-# EC2 INSTANCE
-# ============================================================
-
 locals {
   user_data = <<-EOF
     #!/bin/bash
-    # Ne stavljamo 'set -e' odmah na početak kako nam sitne greške u apt-u ne bi ubile skriptu
     exec > /var/log/user_data.log 2>&1
 
-    echo "=== STARTING USER DATA ==="
     apt-get update -y
-    # Instaliramo docker i službeni compose plugin preko paketa (pouzdanije)
     apt-get install -y docker.io docker-compose-plugin git curl postgresql-client
     
     systemctl start docker
     systemctl enable docker
     usermod -aG docker ubuntu
 
-    echo "=== CLONING REPO ==="
     git clone ${var.app_repo} /home/ubuntu/app
     cd /home/ubuntu/app
 
-    echo "=== CREATING ENV ==="
     cat > .env << ENVFILE
     RDS_DATABASE_URL=postgresql://${var.db_username}:${var.db_password}@${aws_db_instance.main.address}:5432/${var.db_name}
     PORT=3000
     HOST=0.0.0.0
     ENVFILE
 
-    echo "=== STARTING DOCKER COMPOSE ==="
-    # Koristimo modernu i sigurnu 'docker compose' sintaksu
     docker compose -f docker-compose.aws.yaml up -d --build
-
-    echo "=== WAITING FOR DB AND APP ==="
-    # Dajemo malo više vremena (45s) da se kontejneri stvarno podignu i izgrade
     sleep 45
 
-    echo "=== RUNNING DB INIT ==="
     export PGPASSWORD='${var.db_password}'
-    psql -h ${aws_db_instance.main.address} -U ${var.db_username} -d ${var.db_name} -f /home/ubuntu/app/db/init.sql || echo "DB init failed but continuing..."
-    
-    echo "=== USER DATA FINISHED ==="
+    psql -h ${aws_db_instance.main.address} -U ${var.db_username} -d ${var.db_name} -f /home/ubuntu/app/db/init.sql || true
   EOF
 }
+
 resource "aws_instance" "app_1" {
   ami                    = var.ami_id
   instance_type          = var.instance_type
@@ -262,10 +226,6 @@ resource "aws_instance" "app_2" {
 
   depends_on = [aws_db_instance.main]
 }
-
-# ============================================================
-# APPLICATION LOAD BALANCER
-# ============================================================
 
 resource "aws_lb" "main" {
   name               = "amiibo-alb"
