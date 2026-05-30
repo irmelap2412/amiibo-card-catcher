@@ -1,0 +1,11 @@
+# Kopirati strukturu ovog fajla u terraform.tfvars 
+aws_region        = "us-east-1"
+instance_type     = "t2.micro"
+ami_id            = "ami-0c7217cdde317cfec"
+key_pair_name     = "amiibo-key"
+db_instance_class = "db.t3.micro"
+db_username       = "amiibo_admin"
+db_password       = "Amiibo2026IMS!"
+db_name           = "amiibo_db"
+s3_bucket_name    = "amiibo-card-catcher-assets-irmela"
+app_repo          = "https://github.com/irmelap2412/amiibo-card-catcher"

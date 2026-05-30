@@ -1,2 +1,23 @@
+# Vlastite skripte
+deploy.sh
+destroy.sh
+
+# Node / Frontend / Backend dependencies
+**/node_modules/
+dist/
+build/
+
+# Okruženja i tajne (Nikada ne guranju na Git!)
 .env
-node_modules/
+.env.local
+**/.env
+**/.env.*
+
+# Terraform fajlovi (Bilo gdje unutar projekta)
+**/.terraform/
+**/*.tfstate
+**/*.tfstate.*
+**/*.tfvars
+**/*.tfvars.json
+**/.terraform.lock.hcl
+**/moj_plan.tfplan
